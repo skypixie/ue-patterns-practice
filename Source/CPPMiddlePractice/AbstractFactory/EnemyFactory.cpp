@@ -59,7 +59,6 @@ void AElvenFactory::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent,
 	bool bFromSweep,
 	const FHitResult& HitResult)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("AElvenBoss::Hit"));
 	CreateSoldier();
 }
 
