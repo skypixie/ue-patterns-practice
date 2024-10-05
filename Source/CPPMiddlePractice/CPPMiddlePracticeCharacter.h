@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
+#include "GameFramework/Character.h"
 #include "CPPMiddlePracticeCharacter.generated.h"
 
 class USpringArmComponent;
