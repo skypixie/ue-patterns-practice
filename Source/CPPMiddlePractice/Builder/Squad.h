@@ -9,14 +9,6 @@
 
 #include "Squad.generated.h"
 
-/**
- * squad interface
- * we can derive other types of squads from it
- * for example, Battle squad or squad for Mining
- * that will have different types of members
- * for example, miner, support, technician etc.
- */
-
 
 /*
 * For my example, I will only create Battle squad

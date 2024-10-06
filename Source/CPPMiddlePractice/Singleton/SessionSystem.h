@@ -10,10 +10,6 @@
 
 #include "SessionSystem.generated.h"
 
-/**
- * Imaginary system for managing players that
- * joined the online game
- */
 UCLASS()
 class CPPMIDDLEPRACTICE_API USessionSystem : public UObject
 {

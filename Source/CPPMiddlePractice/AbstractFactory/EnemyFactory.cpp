@@ -3,6 +3,8 @@
 
 #include "EnemyFactory.h"
 
+#include "Components/BoxComponent.h"
+
 #include "Enemy.h"
 #include "NecroSoldier.h"
 #include "NecroBoss.h"
@@ -10,7 +12,11 @@
 #include "ElvenBoss.h"
 
 /*
-* Client is the factory itself 
+* Данный паттерн может применяться, когда нужно создавать
+* объкеты с одним интерфейсом, но разными рализациями методов.
+* Например, враги разного внешнего вида, с разным поведением и тп.
+* Здесь я использую его для того, чтобы создавать врагов разных классов
+* И игровой уровень использует фабрики, чтобы она создавала врагов.
 */
 
 // Sets default values
@@ -18,6 +24,16 @@ AEnemyFactory::AEnemyFactory()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	
+	SMComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Satic Mesh"));
+	SMComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	SMComp->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Overlap);
+	SMComp->OnComponentBeginOverlap.AddDynamic(this, &AEnemyFactory::OnOverlapBegin);
+
+	Collision = CreateDefaultSubobject<UBoxComponent>(TEXT("Collision"));
+	Collision->SetupAttachment(SMComp);
+	Collision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	Collision->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 
 }
 
@@ -37,19 +53,26 @@ void AEnemyFactory::Tick(float DeltaTime)
 
 AElvenFactory::AElvenFactory()
 {
-	SMComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Sm Comp"));
-	SMComp->OnComponentBeginOverlap.AddDynamic(this, &AElvenFactory::OnOverlapBegin);
+	//Super::AEnemyFactory();
+	SMComp->OnComponentEndOverlap.AddDynamic(this, &AElvenFactory::OnOverlapEnd);
 }
 
 AEnemy* AElvenFactory::CreateSoldier()
 {
-	AEnemy* newSoldier = dynamic_cast<AElvenSoldier*>(GetWorld()->SpawnActor(SoldierToSpawn));
+	FVector SpawnLocation = FMath::RandPointInBox(Collision->GetNavigationBounds());
+	FTransform SpawnTransform(SpawnLocation);
+
+	AEnemy* newSoldier = dynamic_cast<AElvenSoldier*>(GetWorld()->SpawnActor(SoldierToSpawn, &SpawnTransform));
 	return newSoldier;
 }
 
 AEnemy* AElvenFactory::CreateBoss()
 {
-	return nullptr;
+	FVector SpawnLocation = FMath::RandPointInBox(Collision->GetNavigationBounds());
+	FTransform SpawnTransform(SpawnLocation);
+
+	AEnemy* newSoldier = dynamic_cast<AElvenBoss*>(GetWorld()->SpawnActor(SoldierToSpawn, &SpawnTransform));
+	return newSoldier;
 }
 
 void AElvenFactory::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent,
@@ -62,20 +85,35 @@ void AElvenFactory::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent,
 	CreateSoldier();
 }
 
+void AElvenFactory::OnOverlapEnd(UPrimitiveComponent* OverlappedComp,
+	AActor* OtherActor,
+	UPrimitiveComponent* OtherComp,
+	int32 OtherBodyIndex)
+{
+	CreateBoss();
+}
+
 ANecroFactory::ANecroFactory()
 {
-	SMComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Sm Comp"));
-	SMComp->OnComponentBeginOverlap.AddDynamic(this, &ANecroFactory::OnOverlapBegin);
+	//Super::AEnemyFactory();
+	SMComp->OnComponentEndOverlap.AddDynamic(this, &ANecroFactory::OnOverlapEnd);
 }
 
 AEnemy* ANecroFactory::CreateSoldier()
 {
-	return nullptr;
+	FVector SpawnLocation = FMath::RandPointInBox(Collision->GetNavigationBounds());
+	FTransform SpawnTransform(SpawnLocation);
+
+	AEnemy* newSoldier = dynamic_cast<ANecroSoldier*>(GetWorld()->SpawnActor(SoldierToSpawn, &SpawnTransform));
+	return newSoldier;
 }
 
 AEnemy* ANecroFactory::CreateBoss()
 {
-	AEnemy* newSoldier = dynamic_cast<AElvenSoldier*>(GetWorld()->SpawnActor(SoldierToSpawn));
+	FVector SpawnLocation = FMath::RandPointInBox(Collision->GetNavigationBounds());
+	FTransform SpawnTransform(SpawnLocation);
+
+	AEnemy* newSoldier = dynamic_cast<ANecroBoss*>(GetWorld()->SpawnActor(BossToSpawn, &SpawnTransform));
 	return newSoldier;
 }
 
@@ -85,6 +123,14 @@ void ANecroFactory::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent,
 	int32 OtherBodyIndex,
 	bool bFromSweep,
 	const FHitResult& HitResult)
+{
+	CreateBoss();
+}
+
+void ANecroFactory::OnOverlapEnd(UPrimitiveComponent* OverlappedComp,
+	AActor* OtherActor,
+	UPrimitiveComponent* OtherComp,
+	int32 OtherBodyIndex)
 {
 	CreateBoss();
 }

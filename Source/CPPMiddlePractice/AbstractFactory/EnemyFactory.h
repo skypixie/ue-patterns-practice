@@ -8,6 +8,7 @@
 
 class AEnemy;
 class UStaticMeshComponent;
+class UBoxComponent;
 
 
 UCLASS()
@@ -21,6 +22,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UStaticMeshComponent* SMComp = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UBoxComponent* Collision = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<AEnemy> SoldierToSpawn;
@@ -42,6 +46,14 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	virtual AEnemy* CreateBoss() PURE_VIRTUAL(AEnemyFactory::CreateBoss, return nullptr;);
 
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	virtual void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComponent,
+		int32 OtherBodyIndex,
+		bool bFromSweep,
+		const FHitResult& HitResult) PURE_VIRTUAL(AEnemyFactory::OnOverlapBegin, );
+
 };
 
 UCLASS()
@@ -56,13 +68,18 @@ public:
 
 	virtual AEnemy* CreateBoss() override;
 
-	UFUNCTION()
-	void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent,
+	virtual void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent,
 		AActor* OtherActor,
 		UPrimitiveComponent* OtherComponent,
 		int32 OtherBodyIndex,
 		bool bFromSweep,
-		const FHitResult& HitResult);
+		const FHitResult& HitResult) override;
+
+	UFUNCTION()
+	virtual void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp,
+		class AActor* OtherActor,
+		class UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex);
 };
 
 UCLASS()
@@ -77,11 +94,16 @@ public:
 
 	virtual AEnemy* CreateBoss() override;
 
-	UFUNCTION()
-	void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent,
+	virtual void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent,
 		AActor* OtherActor,
 		UPrimitiveComponent* OtherComponent,
 		int32 OtherBodyIndex,
 		bool bFromSweep,
-		const FHitResult& HitResult);
+		const FHitResult& HitResult) override;
+
+	UFUNCTION()
+	virtual void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp,
+		class AActor* OtherActor,
+		class UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex);
 };
